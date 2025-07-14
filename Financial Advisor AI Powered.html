@@ -1,0 +1,560 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI-Powered Financial Planner</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://unpkg.com/lucide-react@0.292.0/dist/lucide-react.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        .card {
+            background-color: white;
+            border-radius: 0.75rem;
+            box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+            transition: all 0.3s ease;
+        }
+        .card:hover {
+            box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -2px rgb(0 0 0 / 0.1);
+            transform: translateY(-2px);
+        }
+        .btn-primary {
+            background-color: #2563eb;
+            color: white;
+            transition: background-color 0.3s ease;
+        }
+        .btn-primary:hover {
+            background-color: #1d4ed8;
+        }
+        .btn-primary:disabled {
+            background-color: #93c5fd;
+            cursor: not-allowed;
+        }
+        .input-field {
+            border: 1px solid #d1d5db;
+            transition: border-color 0.3s ease, box-shadow 0.3s ease;
+        }
+        .input-field:focus {
+            border-color: #2563eb;
+            box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.2);
+            outline: none;
+        }
+        .risk-selector button.active {
+            background-color: #2563eb;
+            color: white;
+            border-color: #2563eb;
+        }
+        .ai-insight-box {
+            background-color: #f0f9ff; /* light blue */
+            border-left: 4px solid #3b82f6; /* blue */
+            padding: 1rem;
+            border-radius: 0.5rem;
+            margin-top: 1rem;
+        }
+        .loader {
+            width: 18px;
+            height: 18px;
+            border: 2px solid #FFF;
+            border-bottom-color: transparent;
+            border-radius: 50%;
+            display: inline-block;
+            box-sizing: border-box;
+            animation: rotation 1s linear infinite;
+        }
+        @keyframes rotation {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body class="bg-gray-50 text-gray-800">
+
+    <div class="container mx-auto p-4 md:p-8">
+        <header class="text-center mb-8">
+            <div class="flex justify-center items-center gap-2">
+                <svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-bot text-blue-600"><path d="M12 8V4H8"/><rect width="16" height="12" x="4" y="8" rx="2"/><path d="M2 14h2"/><path d="M20 14h2"/><path d="M15 13v2"/><path d="M9 13v2"/></svg>
+                <h1 class="text-4xl md:text-5xl font-bold text-gray-900">Fin-Canvas AI</h1>
+            </div>
+            <p class="text-lg text-gray-600 mt-2">Your AI-Powered Financial Planner</p>
+        </header>
+
+        <!-- Main Grid -->
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+
+            <!-- Left Panel: Inputs -->
+            <div class="lg:col-span-1 space-y-6">
+                <div class="card p-6">
+                    <h2 class="text-2xl font-bold mb-4 flex items-center">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-user-check mr-2"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><polyline points="16 11 18 13 22 9"/></svg>
+                        Your Financial Profile
+                    </h2>
+                    
+                    <div class="space-y-4">
+                        <div>
+                            <label for="salary" class="block text-sm font-medium text-gray-700">Monthly Salary (Post-Tax)</label>
+                            <input type="number" id="salary" placeholder="e.g., 150000" class="mt-1 block w-full rounded-md input-field p-2">
+                        </div>
+                        <div>
+                            <label for="mandatory-expenses" class="block text-sm font-medium text-gray-700">Mandatory Monthly Expenses</label>
+                            <input type="number" id="mandatory-expenses" placeholder="e.g., Rent, Groceries, EMI" class="mt-1 block w-full rounded-md input-field p-2">
+                        </div>
+                        <div>
+                            <label for="non-mandatory-expenses" class="block text-sm font-medium text-gray-700">Non-Mandatory Monthly Expenses</label>
+                            <input type="number" id="non-mandatory-expenses" placeholder="e.g., Dining, Shopping" class="mt-1 block w-full rounded-md input-field p-2">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700">Your Risk Profile</label>
+                            <div id="risk-profile" class="risk-selector grid grid-cols-3 gap-2 mt-1">
+                                <button data-risk="Conservative" class="w-full border border-gray-300 rounded-md py-2 px-3 text-sm transition">Conservative</button>
+                                <button data-risk="Balanced" class="w-full border border-gray-300 rounded-md py-2 px-3 text-sm transition active">Balanced</button>
+                                <button data-risk="Aggressive" class="w-full border border-gray-300 rounded-md py-2 px-3 text-sm transition">Aggressive</button>
+                            </div>
+                        </div>
+                         <div>
+                            <label for="horizon" class="block text-sm font-medium text-gray-700">Investment Horizon: <span id="horizon-value" class="font-bold text-blue-600">10 Years</span></label>
+                            <input type="range" id="horizon" min="1" max="30" value="10" class="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer">
+                        </div>
+                    </div>
+                    
+                    <button id="calculate-plan" class="w-full btn-primary font-bold py-3 px-4 rounded-md mt-6 flex items-center justify-center">
+                        <span id="btn-text">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-wand-2 mr-2 inline-block"><path d="m3 21 8.02-14.26L18 2l-2.64 7.36L3 21Z"/><path d="M21 16V8"/><path d="M18 19h4"/><path d="M12.5 13.5L3 21"/><path d="M11.5 6.5L18 2"/></svg>
+                            Generate AI Plan
+                        </span>
+                        <span id="btn-loader" class="hidden loader"></span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Right Panel: Outputs -->
+            <div id="output-panel" class="lg:col-span-2 space-y-6">
+                <div id="welcome-message" class="card p-8 text-center">
+                     <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-bot mx-auto text-blue-500 mb-4"><path d="M12 8V4H8"/><rect width="16" height="12" x="4" y="8" rx="2"/><path d="M2 14h2"/><path d="M20 14h2"/><path d="M15 13v2"/><path d="M9 13v2"/></svg>
+                    <h2 class="text-2xl font-bold">The AI is Ready to Assist You</h2>
+                    <p class="text-gray-600 mt-2">Fill in your details to generate a personalized, AI-driven investment roadmap.</p>
+                </div>
+                
+                <!-- This is where the results will be injected -->
+            </div>
+        </div>
+    </div>
+    
+    <!-- JS Template for Output Cards -->
+    <template id="results-template">
+        <div class="card p-6">
+            <h2 class="text-2xl font-bold mb-4 flex items-center">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-file-pie-chart mr-2"><path d="M16 22h2a2 2 0 0 0 2-2V7l-5-5H6a2 2 0 0 0-2 2v3"/><path d="M14 2v4a2 2 0 0 0 2 2h4"/><path d="M4.04 11.72a2.2 2.2 0 0 0-.13 3.16l.2.33a2.2 2.2 0 0 0 3.45-1.42l.24-1.42a2.2 2.2 0 0 0-1.55-2.58l-1.42-.24a2.2 2.2 0 0 0-2.58 1.55z"/><path d="M9.42 16.1a2.2 2.2 0 0 0 3.44-1.42l.24-1.42a2.2 2.2 0 0 0-1.55-2.58l-1.42-.24a2.2 2.2 0 0 0-2.58 1.55l-.13 3.16z"/></svg>
+                Your Financial Snapshot
+            </h2>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-center">
+                <div class="bg-blue-50 p-4 rounded-lg">
+                    <p class="text-sm text-blue-800 font-medium">Investable Surplus</p>
+                    <p id="surplus-value" class="text-2xl font-bold text-blue-900"></p>
+                </div>
+                <div class="bg-green-50 p-4 rounded-lg">
+                    <p class="text-sm text-green-800 font-medium">Emergency Fund Target <span class="font-normal">(6 Months)</span></p>
+                    <p id="emergency-target-value" class="text-2xl font-bold text-green-900"></p>
+                </div>
+            </div>
+            <div id="emergency-advice" class="mt-4 text-center text-sm text-gray-600 bg-yellow-50 p-3 rounded-lg">
+                <p><strong>Note:</strong> Once your emergency fund is fully saved, redirect the amount you were saving for it into your monthly SIPs to accelerate your wealth growth.</p>
+            </div>
+        </div>
+
+        <div class="card p-6">
+             <h2 class="text-2xl font-bold mb-4 flex items-center">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-pie-chart mr-2"><path d="M21.21 15.89A10 10 0 1 1 8 2.83"/><path d="M22 12A10 10 0 0 0 12 2v10z"/></svg>
+                Recommended Asset Allocation
+            </h2>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 items-center">
+                <div class="h-64 w-full"><canvas id="allocation-chart"></canvas></div>
+                <div id="ai-market-insight" class="ai-insight-box">
+                    <h3 class="font-bold text-lg text-blue-800 mb-2 flex items-center">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-brain-circuit mr-2"><path d="M12 5a3 3 0 1 0-5.993.251"/><path d="M12 5a3 3 0 1 1 5.993.251"/><path d="M12 13a3 3 0 1 0-5.993.251"/><path d="M12 13a3 3 0 1 1 5.993.251"/><path d="M12 21a3 3 0 1 0-5.993.251"/><path d="M12 21a3 3 0 1 1 5.993.251"/><path d="M20 13h-2"/><path d="M6 13H4"/><path d="M12 13v-2"/><path d="M12 9V7"/><path d="m15.5 14.5-.88.88"/><path d="m8.5 14.5.88.88"/><path d="M20 5h-2"/><path d="M6 5H4"/><path d="m15.5 6.5-.88-.88"/><path d="m8.5 6.5.88-.88"/></svg>
+                        AI Market Insight
+                    </h3>
+                    <p class="text-sm text-blue-900"></p>
+                </div>
+            </div>
+        </div>
+
+        <div class="card p-6">
+            <h2 class="text-2xl font-bold mb-4 flex items-center">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-target mr-2"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12"cy="12" r="2"/></svg>
+                Your Action Plan: Monthly Investment
+            </h2>
+            <div id="plan-cards" class="space-y-4"></div>
+            <div id="ai-portfolio-rationale" class="ai-insight-box">
+                <h3 class="font-bold text-lg text-blue-800 mb-2 flex items-center">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-lightbulb mr-2"><path d="M15 14c.2-1 .7-1.7 1.5-2.5C17.7 10.2 18 9.2 18 8c0-2.2-1.8-4-4-4-2.2 0-4 1.8-4 4c0 1.2.3 2.2 1.5 3.5.7.8 1.3 1.5 1.5 2.5"/><path d="M9 18h6"/><path d="M10 22h4"/></svg>
+                    AI Portfolio Rationale
+                </h3>
+                <p class="text-sm text-blue-900"></p>
+            </div>
+        </div>
+        
+        <div class="card p-6">
+            <h2 class="text-2xl font-bold mb-4 flex items-center">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-trending-up mr-2"><polyline points="22 7 13.5 15.5 8.5 10.5 2 17"/><polyline points="16 7 22 7 22 13"/></svg>
+                Projected Wealth
+            </h2>
+            <div class="text-center mb-6">
+                 <p class="text-lg text-gray-600">In <span id="projection-horizon" class="font-bold text-blue-600"></span> years, your investment could be worth:</p>
+                 <p id="projection-value" class="text-4xl md:text-5xl font-bold text-gray-900 my-2"></p>
+                 <p class="text-sm text-gray-500">Based on a monthly investment of <span id="projection-sip" class="font-semibold"></span> at an assumed <span id="projection-rate" class="font-semibold"></span> annual return.</p>
+            </div>
+            <div class="h-64 w-full"><canvas id="projection-chart"></canvas></div>
+        </div>
+    </template>
+    
+    <script>
+    document.addEventListener('DOMContentLoaded', () => {
+        // --- DOM ELEMENTS ---
+        const salaryEl = document.getElementById('salary');
+        const mandatoryExpensesEl = document.getElementById('mandatory-expenses');
+        const nonMandatoryExpensesEl = document.getElementById('non-mandatory-expenses');
+        const riskProfileEl = document.getElementById('risk-profile');
+        const horizonEl = document.getElementById('horizon');
+        const horizonValueEl = document.getElementById('horizon-value');
+        const calculateBtn = document.getElementById('calculate-plan');
+        const outputPanel = document.getElementById('output-panel');
+        const welcomeMessage = document.getElementById('welcome-message');
+        const btnText = document.getElementById('btn-text');
+        const btnLoader = document.getElementById('btn-loader');
+
+        let currentRisk = 'Balanced';
+        let allocationChartInstance = null;
+        let projectionChartInstance = null;
+
+        // --- EVENT LISTENERS ---
+        riskProfileEl.addEventListener('click', (e) => {
+            if (e.target.tagName === 'BUTTON') {
+                currentRisk = e.target.dataset.risk;
+                riskProfileEl.querySelectorAll('button').forEach(btn => btn.classList.remove('active'));
+                e.target.classList.add('active');
+            }
+        });
+        
+        horizonEl.addEventListener('input', () => {
+            horizonValueEl.textContent = `${horizonEl.value} Years`;
+        });
+
+        calculateBtn.addEventListener('click', async () => {
+            const salary = parseFloat(salaryEl.value) || 0;
+            const mandatoryExpenses = parseFloat(mandatoryExpensesEl.value) || 0;
+            const nonMandatoryExpenses = parseFloat(nonMandatoryExpensesEl.value) || 0;
+            const totalExpenses = mandatoryExpenses + nonMandatoryExpenses;
+            const horizon = parseInt(horizonEl.value);
+
+            if (salary <= 0 || mandatoryExpenses <= 0 || salary <= totalExpenses) {
+                alert("Please enter a valid salary and expenses. Salary must be greater than total expenses, and mandatory expenses must be greater than zero.");
+                return;
+            }
+
+            // Show loader
+            btnText.classList.add('hidden');
+            btnLoader.classList.remove('hidden');
+            calculateBtn.disabled = true;
+
+            try {
+                const surplus = salary - totalExpenses;
+                const emergencyTarget = mandatoryExpenses * 6;
+                const plan = await generatePlan(currentRisk, horizon, surplus);
+                
+                if(plan) {
+                    renderPlan(plan, surplus, emergencyTarget, horizon);
+                } else {
+                    alert("Could not generate AI plan. Please try again.");
+                    outputPanel.innerHTML = '';
+                    if (welcomeMessage) welcomeMessage.style.display = 'block';
+                }
+            } catch (error) {
+                console.error("Error generating plan:", error);
+                alert("An error occurred while generating the AI plan. Please check the console for details.");
+            } finally {
+                // Hide loader
+                btnText.classList.remove('hidden');
+                btnLoader.classList.add('hidden');
+                calculateBtn.disabled = false;
+            }
+        });
+
+        // --- AI & LOGIC ENGINE ---
+        function getAIInsights(risk, horizon, allocation) {
+            let portfolioRationale = '';
+
+            if (risk === 'Aggressive') {
+                portfolioRationale = `With your aggressive risk profile and a long ${horizon}-year horizon, the portfolio is heavily tilted towards equity (${allocation.equity}%) to maximize growth. The significant allocation to Mid and Small-Cap funds is designed for high capital appreciation, as you have ample time to ride out market cycles.`;
+            } else if (risk === 'Balanced') {
+                portfolioRationale = `This balanced portfolio (${allocation.equity}% equity) is designed for steady wealth creation. It combines the stability of Large-Cap index funds with the growth potential of Mid-Caps. The debt component provides a cushion against market downturns, making it suitable for your ${horizon}-year timeframe.`;
+            } else { // Conservative
+                portfolioRationale = `Given your conservative approach, this portfolio prioritizes capital protection with a large debt allocation (${allocation.debt}%). The equity component via an Index Fund offers a small exposure to market growth with minimal risk. The inclusion of FDs provides guaranteed returns.`;
+            }
+            
+            return { portfolioRationale };
+        }
+
+        async function getAIFundSelection(risk, categories) {
+            const prompt = `You are an expert financial advisor in India. Based on a user's '${risk}' risk profile, recommend one top-performing mutual fund for each of the following categories: ${categories.join(', ')}. Provide the response as a JSON array where each object has "name", "category", and "type" keys. Only recommend funds available in India. Ensure the fund name is accurate. For "Guaranteed Return", recommend a bank FD.`;
+            
+            const payload = {
+                contents: [{ role: "user", parts: [{ text: prompt }] }],
+                generationConfig: {
+                    responseMimeType: "application/json",
+                    responseSchema: {
+                        type: "ARRAY",
+                        items: {
+                            type: "OBJECT",
+                            properties: {
+                                "name": { "type": "STRING" },
+                                "category": { "type": "STRING" },
+                                "type": { "type": "STRING", "enum": ["MF", "FD"] }
+                            },
+                            required: ["name", "category", "type"]
+                        }
+                    }
+                }
+            };
+
+            const apiKey = ""; // Leave empty, handled by environment
+            const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`;
+
+            try {
+                const response = await fetch(apiUrl, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+                if (!response.ok) {
+                    throw new Error(`API request failed with status ${response.status}`);
+                }
+                const result = await response.json();
+                if (result.candidates && result.candidates.length > 0 && result.candidates[0].content.parts.length > 0) {
+                    const parsedJson = JSON.parse(result.candidates[0].content.parts[0].text);
+                    return Array.isArray(parsedJson) ? parsedJson : Object.values(parsedJson)[0];
+                }
+            } catch (error) {
+                console.error("Gemini API call for fund selection failed:", error);
+                return null; 
+            }
+            return null;
+        }
+
+        async function getAIMarketInsight() {
+            const prompt = "Provide a brief, 2-3 sentence market sentiment analysis for the Indian stock market for today. Mention key indices like Nifty 50 and Sensex, and suggest a general investment approach (e.g., systematic investment, caution).";
+            const payload = { contents: [{ role: "user", parts: [{ text: prompt }] }] };
+            const apiKey = ""; // Leave empty
+            const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`;
+
+            try {
+                const response = await fetch(apiUrl, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+                 if (!response.ok) {
+                    throw new Error(`API request failed with status ${response.status}`);
+                }
+                const result = await response.json();
+                if (result.candidates && result.candidates.length > 0) {
+                    return result.candidates[0].content.parts[0].text;
+                }
+            } catch (error) {
+                console.error("Gemini API call for market insight failed:", error);
+                return "Could not fetch live market insight. General advice: A systematic investment approach is prudent in all market conditions to average costs and mitigate risk.";
+            }
+            return "Could not fetch live market insight. General advice: A systematic investment approach is prudent in all market conditions to average costs and mitigate risk.";
+        }
+
+
+        async function generatePlan(risk, horizon, surplus) {
+            let allocation = {};
+            let categoriesToFetch = [];
+            let fundsToRecommend = [];
+            let expectedReturn = 0;
+
+            const returns = { equity: 13, debt: 7, fd: 6.5 };
+            const fundSentiments = [
+                { text: 'Positive Outlook', color: 'green' },
+                { text: 'Stable Performer', color: 'blue' },
+                { text: 'Growth Potential', color: 'purple' },
+                { text: 'Core Holding', color: 'yellow' }
+            ];
+
+            if (risk === 'Conservative') {
+                allocation = { equity: 20, debt: 80 };
+                categoriesToFetch = ["Guaranteed Return", "Debt Fund", "Index Fund"];
+            } else if (risk === 'Balanced') {
+                allocation = { equity: 60, debt: 40 };
+                if (horizon < 5) allocation = { equity: 40, debt: 60 };
+                categoriesToFetch = ["Index Fund", "Flexi Cap Fund", "Mid Cap Fund", "Debt Fund"];
+            } else { // Aggressive
+                allocation = { equity: 85, debt: 15 };
+                if (horizon < 5) allocation = { equity: 70, debt: 30 };
+                categoriesToFetch = ["Flexi Cap Fund", "Mid Cap Fund", "Small Cap Fund", "Debt Fund"];
+            }
+            
+            const aiSelectedFunds = await getAIFundSelection(risk, categoriesToFetch);
+            if (!aiSelectedFunds) return null; // Exit if API call fails
+            
+            const monthlyInvestment = surplus > 0 ? surplus * 0.8 : 0; 
+            
+            if (risk === 'Conservative') {
+                fundsToRecommend.push({ instrument: aiSelectedFunds.find(f => f.category === "Guaranteed Return") || {name: "Bank FD", category: "Guaranteed Return", type: "FD"}, weight: 0.50 * allocation.debt });
+                fundsToRecommend.push({ instrument: aiSelectedFunds.find(f => f.category === "Debt Fund"), weight: 0.30 * allocation.debt });
+                fundsToRecommend.push({ instrument: aiSelectedFunds.find(f => f.category === "Index Fund"), weight: 1.0 * allocation.equity });
+            } else if (risk === 'Balanced') {
+                fundsToRecommend.push({ instrument: aiSelectedFunds.find(f => f.category === "Index Fund"), weight: 0.50 * allocation.equity });
+                fundsToRecommend.push({ instrument: aiSelectedFunds.find(f => f.category === "Flexi Cap Fund"), weight: 0.30 * allocation.equity });
+                fundsToRecommend.push({ instrument: aiSelectedFunds.find(f => f.category === "Mid Cap Fund"), weight: 0.20 * allocation.equity });
+                fundsToRecommend.push({ instrument: aiSelectedFunds.find(f => f.category === "Debt Fund"), weight: 1.0 * allocation.debt });
+            } else { // Aggressive
+                fundsToRecommend.push({ instrument: aiSelectedFunds.find(f => f.category === "Flexi Cap Fund"), weight: 0.30 * allocation.equity });
+                fundsToRecommend.push({ instrument: aiSelectedFunds.find(f => f.category === "Mid Cap Fund"), weight: 0.40 * allocation.equity });
+                fundsToRecommend.push({ instrument: aiSelectedFunds.find(f => f.category === "Small Cap Fund"), weight: 0.30 * allocation.equity });
+                fundsToRecommend.push({ instrument: aiSelectedFunds.find(f => f.category === "Debt Fund"), weight: 1.0 * allocation.debt });
+            }
+
+            const investmentPlan = fundsToRecommend.map(fund => {
+                if (!fund.instrument) return null; // Add a check for safety
+                return {
+                    ...fund.instrument,
+                    sipAmount: Math.round((monthlyInvestment * (fund.weight / 100)) / 100) * 100,
+                    sentiment: fundSentiments[Math.floor(Math.random() * fundSentiments.length)]
+                }
+            }).filter(fund => fund && fund.sipAmount > 0);
+            
+            const totalSip = investmentPlan.reduce((acc, fund) => acc + fund.sipAmount, 0);
+            
+            let weightedReturn = 0;
+            investmentPlan.forEach(fund => {
+                let r = (fund.type === 'FD') ? returns.fd : (fund.category.includes('Debt') ? returns.debt : returns.equity);
+                if (totalSip > 0) {
+                   weightedReturn += (fund.sipAmount / totalSip) * r;
+                }
+            });
+            expectedReturn = parseFloat(weightedReturn.toFixed(2));
+            
+            const marketInsight = await getAIMarketInsight();
+            const { portfolioRationale } = getAIInsights(risk, horizon, allocation);
+
+            return { allocation, investmentPlan, expectedReturn, totalSip, aiInsights: { marketInsight, portfolioRationale } };
+        }
+        
+        function calculateProjection(monthlyInvestment, years, annualRate) {
+            const i = (annualRate / 100) / 12;
+            const n = years * 12;
+            if (i === 0) return { futureValue: monthlyInvestment * n, yearlyData: [] };
+            const futureValue = monthlyInvestment * ((((1 + i) ** n) - 1) / i) * (1 + i);
+            
+            let yearlyData = [];
+            for (let year = 1; year <= years; year++) {
+                const months = year * 12;
+                const value = monthlyInvestment * ((((1 + i) ** months) - 1) / i) * (1 + i);
+                yearlyData.push(value);
+            }
+            return { futureValue, yearlyData };
+        }
+
+        // --- RENDERING ENGINE ---
+        function renderPlan(plan, surplus, emergencyTarget, horizon) {
+            const welcomeMessage = document.getElementById('welcome-message');
+            const outputPanel = document.getElementById('output-panel');
+            if (welcomeMessage) welcomeMessage.style.display = 'none';
+            const template = document.getElementById('results-template');
+            outputPanel.innerHTML = template.innerHTML;
+
+            // Snapshot
+            document.getElementById('surplus-value').textContent = `₹${surplus.toLocaleString('en-IN')}/month`;
+            document.getElementById('emergency-target-value').textContent = `₹${emergencyTarget.toLocaleString('en-IN')}`;
+
+            // Allocation Chart
+            const allocationCtx = document.getElementById('allocation-chart').getContext('2d');
+            if (allocationChartInstance) allocationChartInstance.destroy();
+            allocationChartInstance = new Chart(allocationCtx, {
+                type: 'doughnut',
+                data: {
+                    labels: ['Equity', 'Debt'],
+                    datasets: [{ data: [plan.allocation.equity, plan.allocation.debt], backgroundColor: ['#2563eb', '#16a34a'], borderColor: ['#ffffff'], borderWidth: 3 }]
+                },
+                options: { responsive: true, maintainAspectRatio: false, cutout: '70%', plugins: { legend: { position: 'bottom', labels: { font: { size: 14 }}}}}
+            });
+
+            // AI Insights
+            document.querySelector('#ai-market-insight p').textContent = plan.aiInsights.marketInsight;
+            document.querySelector('#ai-portfolio-rationale p').textContent = plan.aiInsights.portfolioRationale;
+
+            // Plan Cards
+            const planCardsContainer = document.getElementById('plan-cards');
+            planCardsContainer.innerHTML = '';
+            plan.investmentPlan.forEach(fund => {
+                const card = document.createElement('div');
+                card.className = 'p-4 border rounded-lg flex justify-between items-center bg-gray-50';
+                
+                const sentimentColorClass = { green: 'bg-green-500', blue: 'bg-blue-500', yellow: 'bg-yellow-500', purple: 'bg-purple-500' }[fund.sentiment.color];
+                const sentimentTextColorClass = { green: 'text-green-700', blue: 'text-blue-700', yellow: 'text-yellow-700', purple: 'text-purple-700' }[fund.sentiment.color];
+
+                let icon = (fund.type === 'FD') 
+                    ? `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-landmark mr-3 text-red-600"><line x1="3" x2="21" y1="22" y2="22"/><line x1="6" x2="6" y1="18" y2="11"/><line x1="10" x2="10" y1="18" y2="11"/><line x1="14" x2="14" y1="18" y2="11"/><line x1="18" x2="18" y1="18" y2="11"/><polygon points="12 2 20 7 4 7"/></svg>`
+                    : `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-area-chart mr-3 text-blue-600"><path d="M3 3v18h18"/><path d="M7 12v5h12V8l-5 5-4-4-3 3z"/></svg>`;
+
+                card.innerHTML = `
+                    <div class="flex items-center">
+                        ${icon}
+                        <div>
+                            <p class="font-bold text-gray-800">${fund.name}</p>
+                            <p class="text-sm text-gray-500">${fund.category}</p>
+                            <div class="flex items-center mt-1.5">
+                                <span class="h-2 w-2 rounded-full ${sentimentColorClass} mr-2"></span>
+                                <p class="text-xs font-medium ${sentimentTextColorClass}">${fund.sentiment.text}</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="text-right">
+                        <p class="text-lg font-bold text-blue-600">₹${fund.sipAmount.toLocaleString('en-IN')}</p>
+                        <p class="text-xs text-gray-500">per month</p>
+                    </div>
+                `;
+                planCardsContainer.appendChild(card);
+            });
+            
+            // Projection Dashboard
+            const projectionData = calculateProjection(plan.totalSip, horizon, plan.expectedReturn);
+            document.getElementById('projection-horizon').textContent = horizon;
+            document.getElementById('projection-value').textContent = `₹${Math.round(projectionData.futureValue).toLocaleString('en-IN')}`;
+            document.getElementById('projection-sip').textContent = `₹${plan.totalSip.toLocaleString('en-IN')}`;
+            document.getElementById('projection-rate').textContent = `${plan.expectedReturn}%`;
+            
+            const projectionCtx = document.getElementById('projection-chart').getContext('2d');
+            if (projectionChartInstance) projectionChartInstance.destroy();
+            projectionChartInstance = new Chart(projectionCtx, {
+                type: 'line',
+                data: {
+                    labels: Array.from({length: horizon}, (_, i) => `Year ${i + 1}`),
+                    datasets: [{
+                        label: 'Investment Value',
+                        data: projectionData.yearlyData,
+                        borderColor: '#2563eb',
+                        backgroundColor: 'rgba(37, 99, 235, 0.1)',
+                        fill: true,
+                        tension: 0.3
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { display: false } },
+                    scales: {
+                        y: { ticks: { callback: (value) => `₹${(value/100000).toFixed(1)}L` } }
+                    }
+                }
+            });
+        }
+    });
+    </script>
+</body>
+</html>
